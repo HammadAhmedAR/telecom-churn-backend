@@ -12,3 +12,30 @@ The health endpoint is available at `GET http://localhost:5000/api/health`.
 
 Database schema changes are managed with Sequelize CLI migrations. Use
 `npm run db:migrate` once migrations are added.
+
+## Import IBM Telco customers
+
+Use the standard IBM Telco Customer Churn CSV containing 7,043 customer rows.
+Start PostgreSQL and run the migrations before importing:
+
+```powershell
+docker compose up -d postgres
+npm run db:migrate
+npm run db:import-customers -- "path/to/WA_Fn-UseC_-Telco-Customer-Churn.csv"
+```
+
+Alternatively, set `TELCO_CSV_PATH` in `.env` and run
+`npm run db:import-customers`. The import stops if the customers table is
+already populated. Both the compact CSV headers (`customerID`, `tenure`) and
+the expanded IBM export headers (`CustomerID`, `Tenure Months`) are supported.
+If the source is an Excel workbook, export its customer sheet to CSV first.
+Historical `Churn`/`Churn Label` values are not imported; `churnRisk`
+intentionally remains null until ML batch inference is implemented.
+
+## ML service integration
+
+Configure the future Python service through `ML_SERVICE_URL` and
+`ML_REQUEST_TIMEOUT_MS`. The backend currently provides only a generic,
+timeout-aware JSON client because the sibling ML repository does not yet
+contain FastAPI health or prediction endpoints. The verified contract and
+remaining requirements are documented in `docs/ml-integration.md`.
