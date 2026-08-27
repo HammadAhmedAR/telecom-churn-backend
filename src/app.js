@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 
 import customerRouter from './routes/customer.routes.js';
+import dashboardRouter from './routes/dashboard.routes.js';
 import healthRouter from './routes/health.routes.js';
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use('/api/health', healthRouter);
 app.use('/api/customers', customerRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 app.use((_request, response) => {
   response.status(404).json({ message: 'Route not found' });

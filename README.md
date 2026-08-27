@@ -52,3 +52,11 @@ five concurrent ML requests by default. Use `npm run ml:batch -- --limit=10`
 for a controlled sample. Successful values are real XGBoost class-1
 probabilities stored to four decimal places; rerunning the normal command does
 not overwrite populated scores.
+
+## Dashboard API
+
+`GET /api/dashboard/summary` returns live customer totals, high-risk totals,
+average churn probability, retention-action count, risk distribution, and the
+five highest-risk customers. Metrics use PostgreSQL aggregation over the real
+XGBoost baseline probabilities. See `docs/dashboard-api.md` for the response
+contract and risk-category definitions. Frontend integration is not included.
