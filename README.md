@@ -76,3 +76,11 @@ Authenticated staff can create customer actions with
 history with the corresponding GET route, and list global history through
 `GET /api/retention-actions`. See `docs/retention-api.md` for supported action
 types, validation, filtering, pagination, and response details.
+
+## What-If simulation
+
+Authenticated CRM users can call
+`POST /api/customers/:customerId/simulate` with temporary contract, monthly
+charge, tech-support, or online-security overrides. The complete temporary
+profile is scored by XGBoost without changing customer data, baseline risk, or
+retention history. See `docs/what-if-api.md` for validation and response details.

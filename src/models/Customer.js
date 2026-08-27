@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
 const INTERNET_ADD_ON_VALUES = ['Yes', 'No', 'No internet service'];
+const CONTRACT_VALUES = ['Month-to-month', 'One year', 'Two year'];
 
 class Customer extends Model {
   static initialize(sequelize) {
@@ -75,7 +76,7 @@ class Customer extends Model {
         contract: {
           type: DataTypes.STRING,
           allowNull: false,
-          validate: { isIn: [['Month-to-month', 'One year', 'Two year']] },
+          validate: { isIn: [CONTRACT_VALUES] },
         },
         paperlessBilling: { type: DataTypes.BOOLEAN, allowNull: false },
         paymentMethod: {
@@ -118,4 +119,5 @@ class Customer extends Model {
   }
 }
 
+export { CONTRACT_VALUES, INTERNET_ADD_ON_VALUES };
 export default Customer;

@@ -3,6 +3,7 @@ import {
   listCustomers as listCustomersService,
 } from '../services/customer.service.js';
 import { predictCustomerByCustomerId } from '../services/prediction.service.js';
+import { simulateCustomerByCustomerId } from '../services/simulation.service.js';
 
 const listCustomers = async (request, response, next) => {
   try {
@@ -42,4 +43,22 @@ const predictCustomer = async (request, response, next) => {
   }
 };
 
-export { getCustomer, listCustomers, predictCustomer };
+const simulateCustomer = async (request, response, next) => {
+  try {
+    const simulation = await simulateCustomerByCustomerId(
+      request.params.customerId,
+      request.body,
+    );
+
+    if (!simulation) {
+      response.status(404).json({ message: 'Customer not found' });
+      return;
+    }
+
+    response.json(simulation);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getCustomer, listCustomers, predictCustomer, simulateCustomer };
