@@ -68,3 +68,11 @@ Configure the JWT and demo-user environment values, then run
 returned token as `Authorization: Bearer <token>` when calling customer or
 dashboard routes. Health and login routes remain public. See
 `docs/authentication.md` for the concise setup and security behavior.
+
+## Retention actions
+
+Authenticated staff can create customer actions with
+`POST /api/customers/:customerId/retention-actions`, read that customer's
+history with the corresponding GET route, and list global history through
+`GET /api/retention-actions`. See `docs/retention-api.md` for supported action
+types, validation, filtering, pagination, and response details.

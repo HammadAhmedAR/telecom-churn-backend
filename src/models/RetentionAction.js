@@ -7,6 +7,7 @@ const RETENTION_ACTION_TYPES = [
   'Assign Account Manager',
   'Schedule Retention Follow-Up',
 ];
+const RETENTION_STATUSES = ['Logged'];
 
 class RetentionAction extends Model {
   static initialize(sequelize) {
@@ -28,8 +29,8 @@ class RetentionAction extends Model {
         status: {
           type: DataTypes.STRING,
           allowNull: false,
-          defaultValue: 'Logged',
-          validate: { isIn: [['Logged']] },
+          defaultValue: RETENTION_STATUSES[0],
+          validate: { isIn: [RETENTION_STATUSES] },
         },
       },
       {
@@ -44,5 +45,5 @@ class RetentionAction extends Model {
   }
 }
 
-export { RETENTION_ACTION_TYPES };
+export { RETENTION_ACTION_TYPES, RETENTION_STATUSES };
 export default RetentionAction;

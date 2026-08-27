@@ -6,6 +6,7 @@ import authRouter from './routes/auth.routes.js';
 import customerRouter from './routes/customer.routes.js';
 import dashboardRouter from './routes/dashboard.routes.js';
 import healthRouter from './routes/health.routes.js';
+import retentionRouter from './routes/retention.routes.js';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/customers', authenticateJwt, customerRouter);
 app.use('/api/dashboard', authenticateJwt, dashboardRouter);
+app.use('/api/retention-actions', authenticateJwt, retentionRouter);
 
 app.use((_request, response) => {
   response.status(404).json({ message: 'Route not found' });
