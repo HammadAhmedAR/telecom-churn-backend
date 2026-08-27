@@ -1,6 +1,8 @@
 import cors from 'cors';
 import express from 'express';
 
+import authenticateJwt from './middleware/auth.middleware.js';
+import authRouter from './routes/auth.routes.js';
 import customerRouter from './routes/customer.routes.js';
 import dashboardRouter from './routes/dashboard.routes.js';
 import healthRouter from './routes/health.routes.js';
@@ -15,8 +17,9 @@ app.use(
 app.use(express.json());
 
 app.use('/api/health', healthRouter);
-app.use('/api/customers', customerRouter);
-app.use('/api/dashboard', dashboardRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/customers', authenticateJwt, customerRouter);
+app.use('/api/dashboard', authenticateJwt, dashboardRouter);
 
 app.use((_request, response) => {
   response.status(404).json({ message: 'Route not found' });

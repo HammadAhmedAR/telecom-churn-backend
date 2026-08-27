@@ -10,6 +10,7 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:import-customers": "node src/scripts/importCustomers.js",
+    "db:seed-demo-user": "node src/scripts/seedDemoUser.js",
     "check:ml-integration": "node src/scripts/validateMlBoundary.js",
     "ml:batch": "node src/scripts/runBatchInference.js",
     "db:seed": "sequelize-cli db:seed:all",
@@ -19,10 +20,12 @@
     "node": ">=20"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "csv-parse": "^7.0.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.13.1",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.5"

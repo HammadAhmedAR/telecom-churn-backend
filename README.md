@@ -60,3 +60,11 @@ average churn probability, retention-action count, risk distribution, and the
 five highest-risk customers. Metrics use PostgreSQL aggregation over the real
 XGBoost baseline probabilities. See `docs/dashboard-api.md` for the response
 contract and risk-category definitions. Frontend integration is not included.
+
+## Authentication
+
+Configure the JWT and demo-user environment values, then run
+`npm run db:seed-demo-user`. Log in through `POST /api/auth/login` and send the
+returned token as `Authorization: Bearer <token>` when calling customer or
+dashboard routes. Health and login routes remain public. See
+`docs/authentication.md` for the concise setup and security behavior.
