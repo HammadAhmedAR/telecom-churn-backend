@@ -26,6 +26,28 @@ app.use((error, _request, response, _next) => {
     return;
   }
 
+  if (
+    error.code === 'ML_CONFIGURATION_ERROR'
+    || error.code === 'ML_SERVICE_UNAVAILABLE'
+    || error.code === 'ML_SERVICE_TIMEOUT'
+  ) {
+    console.error('ML service unavailable:', error.code, error.message);
+    response.status(503).json({ message: 'Prediction service unavailable' });
+    return;
+  }
+
+  if (error.code === 'ML_SERVICE_REQUEST_ERROR') {
+    console.error('ML service rejected request:', error.status, error.message);
+    response.status(502).json({ message: 'Prediction service rejected customer data' });
+    return;
+  }
+
+  if (error.code === 'ML_SERVICE_INVALID_RESPONSE') {
+    console.error('Invalid ML service response:', error.message);
+    response.status(502).json({ message: 'Prediction service returned an invalid response' });
+    return;
+  }
+
   console.error('Unexpected application error:', error.message);
   response.status(500).json({ message: 'Internal server error' });
 });

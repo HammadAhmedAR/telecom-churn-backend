@@ -34,8 +34,21 @@ intentionally remains null until ML batch inference is implemented.
 
 ## ML service integration
 
-Configure the future Python service through `ML_SERVICE_URL` and
-`ML_REQUEST_TIMEOUT_MS`. The backend currently provides only a generic,
-timeout-aware JSON client because the sibling ML repository does not yet
-contain FastAPI health or prediction endpoints. The verified contract and
-remaining requirements are documented in `docs/ml-integration.md`.
+Configure FastAPI through `ML_SERVICE_URL` and `ML_REQUEST_TIMEOUT_MS`. Start
+the sibling ML service from its repository root with:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn src.api.main:app --host 127.0.0.1 --port 8000
+```
+
+Then check `GET /api/health/ml` or request one non-persisted prediction with
+`POST /api/customers/:customerId/predict`. Run `npm run check:ml-integration`
+for the mapper, risk-boundary, and response-validation checks. The exact
+contract is documented in `docs/ml-integration.md`.
+
+Populate baseline churn scores deliberately with `npm run ml:batch`. The job
+processes only customers whose `churnRisk` is null, using batches of 100 and
+five concurrent ML requests by default. Use `npm run ml:batch -- --limit=10`
+for a controlled sample. Successful values are real XGBoost class-1
+probabilities stored to four decimal places; rerunning the normal command does
+not overwrite populated scores.

@@ -10,6 +10,8 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:import-customers": "node src/scripts/importCustomers.js",
+    "check:ml-integration": "node src/scripts/validateMlBoundary.js",
+    "ml:batch": "node src/scripts/runBatchInference.js",
     "db:seed": "sequelize-cli db:seed:all",
     "db:seed:undo": "sequelize-cli db:seed:undo:all"
   },

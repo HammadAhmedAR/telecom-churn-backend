@@ -2,6 +2,7 @@ import {
   findCustomerByCustomerId,
   listCustomers as listCustomersService,
 } from '../services/customer.service.js';
+import { predictCustomerByCustomerId } from '../services/prediction.service.js';
 
 const listCustomers = async (request, response, next) => {
   try {
@@ -26,4 +27,19 @@ const getCustomer = async (request, response, next) => {
   }
 };
 
-export { getCustomer, listCustomers };
+const predictCustomer = async (request, response, next) => {
+  try {
+    const prediction = await predictCustomerByCustomerId(request.params.customerId);
+
+    if (!prediction) {
+      response.status(404).json({ message: 'Customer not found' });
+      return;
+    }
+
+    response.json(prediction);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getCustomer, listCustomers, predictCustomer };

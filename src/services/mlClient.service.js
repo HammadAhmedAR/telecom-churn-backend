@@ -132,6 +132,64 @@ const requestMlJson = async (path, { method = 'GET', body, headers = {} } = {}) 
   }
 };
 
+const checkMlHealth = async () => {
+  const response = await requestMlJson('/health');
+
+  if (
+    !response
+    || typeof response !== 'object'
+    || response.status !== 'ok'
+    || typeof response.model_loaded !== 'boolean'
+  ) {
+    throw new MlServiceInvalidResponseError('ML service returned an invalid health response');
+  }
+
+  if (response.model_loaded !== true) {
+    throw new MlServiceUnavailableError('ML service model is not loaded');
+  }
+
+  return response;
+};
+
+const validatePredictionResponse = (response) => {
+  if (!response || typeof response !== 'object' || Array.isArray(response)) {
+    throw new MlServiceInvalidResponseError('ML service returned an invalid prediction response');
+  }
+
+  if (response.prediction !== 0 && response.prediction !== 1) {
+    throw new MlServiceInvalidResponseError('ML prediction must be 0 or 1');
+  }
+
+  if (typeof response.label !== 'string' || !response.label.trim()) {
+    throw new MlServiceInvalidResponseError('ML prediction label must be a non-empty string');
+  }
+
+  if (
+    typeof response.churn_probability !== 'number'
+    || !Number.isFinite(response.churn_probability)
+    || response.churn_probability < 0
+    || response.churn_probability > 1
+  ) {
+    throw new MlServiceInvalidResponseError(
+      'ML churn probability must be a finite number between 0 and 1',
+    );
+  }
+
+  if (typeof response.model !== 'string' || !response.model.trim()) {
+    throw new MlServiceInvalidResponseError('ML model name must be a non-empty string');
+  }
+
+  return response;
+};
+
+const predictCustomer = async (payload) => {
+  const response = await requestMlJson('/predict', {
+    method: 'POST',
+    body: payload,
+  });
+  return validatePredictionResponse(response);
+};
+
 export {
   MlClientError,
   MlConfigurationError,
@@ -139,5 +197,8 @@ export {
   MlServiceRequestError,
   MlServiceTimeoutError,
   MlServiceUnavailableError,
+  checkMlHealth,
+  predictCustomer,
   requestMlJson,
+  validatePredictionResponse,
 };
