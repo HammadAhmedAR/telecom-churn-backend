@@ -1,7 +1,16 @@
 import { Op } from 'sequelize';
 
 import { Customer } from '../models/index.js';
+import {
+  CONTRACT_VALUES,
+  GENDER_VALUES,
+  INTERNET_ADD_ON_VALUES,
+  INTERNET_SERVICE_VALUES,
+  MULTIPLE_LINES_VALUES,
+  PAYMENT_METHOD_VALUES,
+} from '../models/Customer.js';
 import serializeCustomer from '../utils/customer.serializer.js';
+import { predictCustomer } from './prediction.service.js';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -18,6 +27,44 @@ const SORT_FIELDS = new Set([
   'churnRisk',
 ]);
 const SORT_ORDERS = new Set(['asc', 'desc']);
+const CREATE_CUSTOMER_FIELDS = [
+  'customerId',
+  'gender',
+  'seniorCitizen',
+  'partner',
+  'dependents',
+  'tenure',
+  'phoneService',
+  'multipleLines',
+  'internetService',
+  'onlineSecurity',
+  'onlineBackup',
+  'deviceProtection',
+  'techSupport',
+  'streamingTV',
+  'streamingMovies',
+  'contract',
+  'paperlessBilling',
+  'paymentMethod',
+  'monthlyCharges',
+  'totalCharges',
+];
+const CREATE_CUSTOMER_FIELD_SET = new Set(CREATE_CUSTOMER_FIELDS);
+const BOOLEAN_CUSTOMER_FIELDS = [
+  'seniorCitizen',
+  'partner',
+  'dependents',
+  'phoneService',
+  'paperlessBilling',
+];
+const INTERNET_ADD_ON_FIELDS = [
+  'onlineSecurity',
+  'onlineBackup',
+  'deviceProtection',
+  'techSupport',
+  'streamingTV',
+  'streamingMovies',
+];
 
 class CustomerQueryValidationError extends Error {
   constructor(message) {
@@ -25,6 +72,186 @@ class CustomerQueryValidationError extends Error {
     this.statusCode = 400;
   }
 }
+
+class CustomerConflictError extends Error {
+  constructor(message = 'Customer ID already exists') {
+    super(message);
+    this.name = 'CustomerConflictError';
+    this.statusCode = 409;
+  }
+}
+
+const validateCategory = (value, fieldName, allowedValues) => {
+  if (typeof value !== 'string' || !allowedValues.includes(value)) {
+    throw new CustomerQueryValidationError(`Unsupported ${fieldName} value`);
+  }
+  return value;
+};
+
+const validateNewCustomer = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw new CustomerQueryValidationError('Request body must be a JSON object');
+  }
+
+  const unsupportedField = Object.keys(body).find(
+    (field) => !CREATE_CUSTOMER_FIELD_SET.has(field),
+  );
+  if (unsupportedField) {
+    throw new CustomerQueryValidationError(`Unsupported customer field: ${unsupportedField}`);
+  }
+
+  const missingField = CREATE_CUSTOMER_FIELDS.find(
+    (field) => !Object.prototype.hasOwnProperty.call(body, field),
+  );
+  if (missingField) {
+    throw new CustomerQueryValidationError(`${missingField} is required`);
+  }
+
+  if (typeof body.customerId !== 'string' || !body.customerId.trim()) {
+    throw new CustomerQueryValidationError('customerId must be a non-empty string');
+  }
+  const customerId = body.customerId.trim();
+  if (customerId.length > 50) {
+    throw new CustomerQueryValidationError('customerId must not exceed 50 characters');
+  }
+
+  for (const field of BOOLEAN_CUSTOMER_FIELDS) {
+    if (typeof body[field] !== 'boolean') {
+      throw new CustomerQueryValidationError(`${field} must be a boolean`);
+    }
+  }
+
+  if (!Number.isSafeInteger(body.tenure) || body.tenure < 0) {
+    throw new CustomerQueryValidationError('tenure must be a non-negative integer');
+  }
+  if (
+    typeof body.monthlyCharges !== 'number'
+    || !Number.isFinite(body.monthlyCharges)
+    || body.monthlyCharges < 0
+  ) {
+    throw new CustomerQueryValidationError(
+      'monthlyCharges must be a finite non-negative number',
+    );
+  }
+  if (
+    body.totalCharges !== null
+    && (
+      typeof body.totalCharges !== 'number'
+      || !Number.isFinite(body.totalCharges)
+      || body.totalCharges < 0
+    )
+  ) {
+    throw new CustomerQueryValidationError(
+      'totalCharges must be null or a finite non-negative number',
+    );
+  }
+
+  const customer = {
+    customerId,
+    gender: validateCategory(body.gender, 'gender', GENDER_VALUES),
+    seniorCitizen: body.seniorCitizen,
+    partner: body.partner,
+    dependents: body.dependents,
+    tenure: body.tenure,
+    phoneService: body.phoneService,
+    multipleLines: validateCategory(
+      body.multipleLines,
+      'multipleLines',
+      MULTIPLE_LINES_VALUES,
+    ),
+    internetService: validateCategory(
+      body.internetService,
+      'internetService',
+      INTERNET_SERVICE_VALUES,
+    ),
+    onlineSecurity: validateCategory(
+      body.onlineSecurity,
+      'onlineSecurity',
+      INTERNET_ADD_ON_VALUES,
+    ),
+    onlineBackup: validateCategory(
+      body.onlineBackup,
+      'onlineBackup',
+      INTERNET_ADD_ON_VALUES,
+    ),
+    deviceProtection: validateCategory(
+      body.deviceProtection,
+      'deviceProtection',
+      INTERNET_ADD_ON_VALUES,
+    ),
+    techSupport: validateCategory(
+      body.techSupport,
+      'techSupport',
+      INTERNET_ADD_ON_VALUES,
+    ),
+    streamingTV: validateCategory(
+      body.streamingTV,
+      'streamingTV',
+      INTERNET_ADD_ON_VALUES,
+    ),
+    streamingMovies: validateCategory(
+      body.streamingMovies,
+      'streamingMovies',
+      INTERNET_ADD_ON_VALUES,
+    ),
+    contract: validateCategory(body.contract, 'contract', CONTRACT_VALUES),
+    paperlessBilling: body.paperlessBilling,
+    paymentMethod: validateCategory(
+      body.paymentMethod,
+      'paymentMethod',
+      PAYMENT_METHOD_VALUES,
+    ),
+    monthlyCharges: body.monthlyCharges,
+    totalCharges: body.totalCharges,
+  };
+
+  if (
+    (!customer.phoneService && customer.multipleLines !== 'No phone service')
+    || (customer.phoneService && customer.multipleLines === 'No phone service')
+  ) {
+    throw new CustomerQueryValidationError(
+      'multipleLines is inconsistent with phoneService',
+    );
+  }
+
+  const expectedNoInternet = customer.internetService === 'No';
+  const inconsistentInternetField = INTERNET_ADD_ON_FIELDS.find((field) => (
+    expectedNoInternet
+      ? customer[field] !== 'No internet service'
+      : customer[field] === 'No internet service'
+  ));
+  if (inconsistentInternetField) {
+    throw new CustomerQueryValidationError(
+      `${inconsistentInternetField} is inconsistent with internetService`,
+    );
+  }
+
+  return customer;
+};
+
+const createCustomer = async (body) => {
+  const customerInput = validateNewCustomer(body);
+  const existingCustomer = await Customer.findOne({
+    where: { customerId: customerInput.customerId },
+    attributes: ['id'],
+  });
+  if (existingCustomer) throw new CustomerConflictError();
+
+  const prediction = await predictCustomer(customerInput);
+
+  try {
+    const customer = await Customer.create({
+      ...customerInput,
+      churnRisk: prediction.churnProbability,
+    });
+    return serializeCustomer(customer);
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      throw new CustomerConflictError();
+    }
+    throw error;
+  }
+};
 
 const ensureSingleString = (value, parameterName) => {
   if (value === undefined) return undefined;
@@ -155,8 +382,12 @@ const findCustomerByCustomerId = async (customerId) => {
 };
 
 export {
+  CREATE_CUSTOMER_FIELDS,
+  CustomerConflictError,
   CustomerQueryValidationError,
+  createCustomer,
   findCustomerByCustomerId,
   listCustomers,
   parseListQuery,
+  validateNewCustomer,
 };

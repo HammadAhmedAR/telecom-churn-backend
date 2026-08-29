@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import {
+  createCustomer,
   getCustomer,
   listCustomers,
   predictCustomer,
@@ -14,6 +15,7 @@ import {
 const router = Router();
 
 router.get('/', listCustomers);
+router.post('/', createCustomer);
 router.post('/:customerId/retention-actions', createRetentionAction);
 router.get('/:customerId/retention-actions', listCustomerRetentionActions);
 router.post('/:customerId/simulate', simulateCustomer);

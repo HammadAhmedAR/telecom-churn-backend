@@ -1,4 +1,5 @@
 import {
+  createCustomer as createCustomerService,
   findCustomerByCustomerId,
   listCustomers as listCustomersService,
 } from '../services/customer.service.js';
@@ -8,6 +9,14 @@ import { simulateCustomerByCustomerId } from '../services/simulation.service.js'
 const listCustomers = async (request, response, next) => {
   try {
     response.json(await listCustomersService(request.query));
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createCustomer = async (request, response, next) => {
+  try {
+    response.status(201).json(await createCustomerService(request.body));
   } catch (error) {
     next(error);
   }
@@ -61,4 +70,10 @@ const simulateCustomer = async (request, response, next) => {
   }
 };
 
-export { getCustomer, listCustomers, predictCustomer, simulateCustomer };
+export {
+  createCustomer,
+  getCustomer,
+  listCustomers,
+  predictCustomer,
+  simulateCustomer,
+};

@@ -84,3 +84,11 @@ Authenticated CRM users can call
 charge, tech-support, or online-security overrides. The complete temporary
 profile is scored by XGBoost without changing customer data, baseline risk, or
 retention history. See `docs/what-if-api.md` for validation and response details.
+
+## Create a customer
+
+Authenticated CRM users can create a model-compatible customer through
+`POST /api/customers`. The backend validates the full customer profile, obtains
+a real XGBoost probability before insertion, and persists that value as the
+initial `churnRisk`. See `docs/customer-create-api.md` for the request contract
+and failure behavior.

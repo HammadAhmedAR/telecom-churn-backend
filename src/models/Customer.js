@@ -2,6 +2,15 @@ import { DataTypes, Model } from 'sequelize';
 
 const INTERNET_ADD_ON_VALUES = ['Yes', 'No', 'No internet service'];
 const CONTRACT_VALUES = ['Month-to-month', 'One year', 'Two year'];
+const GENDER_VALUES = ['Male', 'Female'];
+const MULTIPLE_LINES_VALUES = ['Yes', 'No', 'No phone service'];
+const INTERNET_SERVICE_VALUES = ['DSL', 'Fiber optic', 'No'];
+const PAYMENT_METHOD_VALUES = [
+  'Electronic check',
+  'Mailed check',
+  'Bank transfer (automatic)',
+  'Credit card (automatic)',
+];
 
 class Customer extends Model {
   static initialize(sequelize) {
@@ -21,7 +30,7 @@ class Customer extends Model {
         gender: {
           type: DataTypes.STRING,
           allowNull: false,
-          validate: { isIn: [['Male', 'Female']] },
+          validate: { isIn: [GENDER_VALUES] },
         },
         seniorCitizen: { type: DataTypes.BOOLEAN, allowNull: false },
         partner: { type: DataTypes.BOOLEAN, allowNull: false },
@@ -35,12 +44,12 @@ class Customer extends Model {
         multipleLines: {
           type: DataTypes.STRING,
           allowNull: false,
-          validate: { isIn: [['Yes', 'No', 'No phone service']] },
+          validate: { isIn: [MULTIPLE_LINES_VALUES] },
         },
         internetService: {
           type: DataTypes.STRING,
           allowNull: false,
-          validate: { isIn: [['DSL', 'Fiber optic', 'No']] },
+          validate: { isIn: [INTERNET_SERVICE_VALUES] },
         },
         onlineSecurity: {
           type: DataTypes.STRING,
@@ -82,14 +91,7 @@ class Customer extends Model {
         paymentMethod: {
           type: DataTypes.STRING,
           allowNull: false,
-          validate: {
-            isIn: [[
-              'Electronic check',
-              'Mailed check',
-              'Bank transfer (automatic)',
-              'Credit card (automatic)',
-            ]],
-          },
+          validate: { isIn: [PAYMENT_METHOD_VALUES] },
         },
         monthlyCharges: {
           type: DataTypes.DECIMAL(10, 2),
@@ -119,5 +121,12 @@ class Customer extends Model {
   }
 }
 
-export { CONTRACT_VALUES, INTERNET_ADD_ON_VALUES };
+export {
+  CONTRACT_VALUES,
+  GENDER_VALUES,
+  INTERNET_ADD_ON_VALUES,
+  INTERNET_SERVICE_VALUES,
+  MULTIPLE_LINES_VALUES,
+  PAYMENT_METHOD_VALUES,
+};
 export default Customer;

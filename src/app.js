@@ -28,8 +28,8 @@ app.use((_request, response) => {
 });
 
 app.use((error, _request, response, _next) => {
-  if (error.statusCode === 400) {
-    response.status(400).json({ message: error.message });
+  if (error.statusCode === 400 || error.statusCode === 409) {
+    response.status(error.statusCode).json({ message: error.message });
     return;
   }
 
